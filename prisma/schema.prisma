@@ -8,101 +8,101 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Usuario {
+model User {
   id        Int       @id @default(autoincrement())
-  nombre    String
+  name      String
   email     String    @unique
-  telefono  String
-  direccion String
-  rol       Rol
-  profesor  Profesor?
-  alumna    Alumna?
+  phone     String
+  address   String
+  role      Role
+  professor Professor?
+  student   Student?
   createdAt DateTime  @default(now())
 }
 
-model Profesor {
-  id                 Int       @id @default(autoincrement())
-  usuarioId          Int       @unique
-  especialidad       String
-  experienciaAnios   Int
-  horariosDisponibles String
-  usuario            Usuario   @relation(fields: [usuarioId], references: [id])
-  clases             Clase[]
-  alumnas            Alumna[]
+model Professor {
+  id                  Int       @id @default(autoincrement())
+  userId              Int       @unique
+  specialty           String
+  yearsOfExperience   Int
+  availableSchedules  String
+  user                User      @relation(fields: [userId], references: [id])
+  classes             Class[]
+  students            Student[]
 }
 
-model Clase {
-  id          Int      @id @default(autoincrement())
-  nombre      String
-  nivel       String
-  edadMinima  Int
-  edadMaxima  Int
-  descripcion String?
-  horario     String
-  capacidad   Int
-  profesorId  Int
-  profesor    Profesor @relation(fields: [profesorId], references: [id])
-  alumnas     Alumna[]
+model Class {
+  id          Int       @id @default(autoincrement())
+  name        String
+  level       String
+  minAge      Int
+  maxAge      Int
+  description String?
+  schedule    String
+  capacity    Int
+  professorId Int
+  professor   Professor @relation(fields: [professorId], references: [id])
+  students    Student[]
 }
 
-model Alumna {
-  id              Int       @id @default(autoincrement())
-  usuarioId       Int       @unique
-  fechaNacimiento DateTime
-  nivel           String
-  notasMedicas    String?
-  claseId         Int?
-  profesorId      Int?
-  seguroPagado    Boolean   @default(false)
-  nombrePadre     String?
-  telefonoPadre   String?
-  nombreMadre     String?
-  telefonoMadre   String?
-  usuario         Usuario   @relation(fields: [usuarioId], references: [id])
-  clase           Clase?    @relation(fields: [claseId], references: [id])
-  profesor        Profesor? @relation(fields: [profesorId], references: [id])
-  seguro          SeguroMedico?
-  competencias    AlumnaCompetencia[]
+model Student {
+  id             Int       @id @default(autoincrement())
+  userId         Int       @unique
+  birthDate      DateTime
+  level          String
+  medicalNotes   String?
+  classId        Int?
+  professorId    Int?
+  insurancePaid  Boolean   @default(false)
+  fatherName     String?
+  fatherPhone    String?
+  motherName     String?
+  motherPhone    String?
+  user           User      @relation(fields: [userId], references: [id])
+  class          Class?    @relation(fields: [classId], references: [id])
+  professor      Professor? @relation(fields: [professorId], references: [id])
+  insurance      MedicalInsurance?
+  competitions   StudentCompetition[]
 }
 
-model SeguroMedico {
-  id              Int       @id @default(autoincrement())
-  alumnaId        Int       @unique
-  dni             String
-  fechaPago       DateTime
-  numeroPoliza    String
-  vigenciaDesde   DateTime
-  vigenciaHasta   DateTime
-  observaciones   String?
-  alumna          Alumna    @relation(fields: [alumnaId], references: [id])
+model MedicalInsurance {
+  id             Int       @id @default(autoincrement())
+  studentId      Int       @unique
+  dni            String
+  paymentDate    DateTime
+  policyNumber   String
+  validFrom      DateTime
+  validUntil     DateTime
+  notes          String?
+  student        Student   @relation(fields: [studentId], references: [id])
 }
 
-model Competencia {
+model Competition {
   id                      Int                  @id @default(autoincrement())
-  nombre                  String
-  fechaLimiteInscripcion  DateTime
-  fechaCompetencia        DateTime
-  lugar                   String
-  direccion               String
-  categoria               String
-  nivel                   String
-  descripcion             String?
-  alumnasCompetencia      AlumnaCompetencia[]
+  name                    String
+  registrationDeadline    DateTime
+  competitionDate         DateTime
+  location                String
+  address                 String
+  category                String
+  level                   String
+  description             String?
+  studentCompetitions     StudentCompetition[]
 }
 
-model AlumnaCompetencia {
-  id             Int        @id @default(autoincrement())
-  alumnaId       Int
-  competenciaId  Int
-  resultado      String?
-  alumna         Alumna     @relation(fields: [alumnaId], references: [id])
-  competencia    Competencia @relation(fields: [competenciaId], references: [id])
+model StudentCompetition {
+  id            Int         @id @default(autoincrement())
+  studentId     Int
+  competitionId Int
+  result        String?
+  student       Student     @relation(fields: [studentId], references: [id])
+  competition   Competition @relation(fields: [competitionId], references: [id])
 
-  @@unique([alumnaId, competenciaId])
+  @@unique([studentId, competitionId])
 }
 
-enum Rol {
+enum Role {
   ADMIN
-  PROFESOR
-  ALUMNA
+  PROFESSOR
+  STUDENT
 }
