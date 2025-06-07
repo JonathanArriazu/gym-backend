@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
   output   = "../generated/prisma"
@@ -12,4 +6,103 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+model Usuario {
+  id        Int       @id @default(autoincrement())
+  nombre    String
+  email     String    @unique
+  telefono  String
+  direccion String
+  rol       Rol
+  profesor  Profesor?
+  alumna    Alumna?
+  createdAt DateTime  @default(now())
+}
+
+model Profesor {
+  id                 Int       @id @default(autoincrement())
+  usuarioId          Int       @unique
+  especialidad       String
+  experienciaAnios   Int
+  horariosDisponibles String
+  usuario            Usuario   @relation(fields: [usuarioId], references: [id])
+  clases             Clase[]
+  alumnas            Alumna[]
+}
+
+model Clase {
+  id          Int      @id @default(autoincrement())
+  nombre      String
+  nivel       String
+  edadMinima  Int
+  edadMaxima  Int
+  descripcion String?
+  horario     String
+  capacidad   Int
+  profesorId  Int
+  profesor    Profesor @relation(fields: [profesorId], references: [id])
+  alumnas     Alumna[]
+}
+
+model Alumna {
+  id              Int       @id @default(autoincrement())
+  usuarioId       Int       @unique
+  fechaNacimiento DateTime
+  nivel           String
+  notasMedicas    String?
+  claseId         Int?
+  profesorId      Int?
+  seguroPagado    Boolean   @default(false)
+  nombrePadre     String?
+  telefonoPadre   String?
+  nombreMadre     String?
+  telefonoMadre   String?
+  usuario         Usuario   @relation(fields: [usuarioId], references: [id])
+  clase           Clase?    @relation(fields: [claseId], references: [id])
+  profesor        Profesor? @relation(fields: [profesorId], references: [id])
+  seguro          SeguroMedico?
+  competencias    AlumnaCompetencia[]
+}
+
+model SeguroMedico {
+  id              Int       @id @default(autoincrement())
+  alumnaId        Int       @unique
+  dni             String
+  fechaPago       DateTime
+  numeroPoliza    String
+  vigenciaDesde   DateTime
+  vigenciaHasta   DateTime
+  observaciones   String?
+  alumna          Alumna    @relation(fields: [alumnaId], references: [id])
+}
+
+model Competencia {
+  id                      Int                  @id @default(autoincrement())
+  nombre                  String
+  fechaLimiteInscripcion  DateTime
+  fechaCompetencia        DateTime
+  lugar                   String
+  direccion               String
+  categoria               String
+  nivel                   String
+  descripcion             String?
+  alumnasCompetencia      AlumnaCompetencia[]
+}
+
+model AlumnaCompetencia {
+  id             Int        @id @default(autoincrement())
+  alumnaId       Int
+  competenciaId  Int
+  resultado      String?
+  alumna         Alumna     @relation(fields: [alumnaId], references: [id])
+  competencia    Competencia @relation(fields: [competenciaId], references: [id])
+
+  @@unique([alumnaId, competenciaId])
+}
+
+enum Rol {
+  ADMIN
+  PROFESOR
+  ALUMNA
 }
