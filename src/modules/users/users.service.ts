@@ -1,7 +1,10 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from 'src/common/prisma/prisma.service';
+import { PaginationArgs } from 'src/common/dto/pagination.dto';
+import { paginate } from 'src/common/pagination/pagination.utils';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class UsersService {
@@ -22,19 +25,23 @@ export class UsersService {
     return this.prisma.user.create({ data });
   }
 
-  async findAll(search?: string) {
-    return this.prisma.user.findMany({
-      where: {
-        isDeleted: false,
-        OR: search
-          ? [
-              { email: { contains: search, mode: 'insensitive' } },
-              { name: { contains: search, mode: 'insensitive' } },
-            ]
-          : undefined,
-      },
-    });
+  async findAll({ search, page = 1, limit = 10 }: PaginationArgs) {
+  if (isNaN(limit) || limit <= 0) {
+    throw new BadRequestException('El parámetro "limit" debe ser un número positivo');
   }
+
+  const where: Prisma.UserWhereInput = {
+    isDeleted: false,
+    OR: search
+      ? [
+          { email: { contains: search, mode: Prisma.QueryMode.insensitive } },
+          { name: { contains: search, mode: Prisma.QueryMode.insensitive } },
+        ]
+      : undefined,
+  };
+
+  return paginate(this.prisma.user, page, limit, where, { createdAt: 'desc' });
+}
 
   async findOne(id: number) {
     const user = await this.prisma.user.findUnique({ where: { id } });
