@@ -26,10 +26,7 @@ export class UsersService {
   }
 
   async findAll({ search, page = 1, limit = 10 }: PaginationArgs) {
-  if (isNaN(limit) || limit <= 0) {
-    throw new BadRequestException('El parámetro "limit" debe ser un número positivo');
-  }
-
+  
   const where: Prisma.UserWhereInput = {
     isDeleted: false,
     OR: search
