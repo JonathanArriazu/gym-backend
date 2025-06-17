@@ -6,6 +6,7 @@ import { PaginationArgs } from 'src/common/dto/pagination.dto';
 import { paginate } from 'src/common/pagination/pagination.utils';
 import { Prisma } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
+import { BCRYPT_SALT_ROUNDS } from 'src/constants';
 
 @Injectable()
 export class UsersService {
@@ -23,14 +24,16 @@ export class UsersService {
     throw new ConflictException('Ya existe un usuario con ese email');
   }
 
-    const hashedPassword = await bcrypt.hash(data.password, 10);
+    const hashedPassword = await bcrypt.hash(data.password, BCRYPT_SALT_ROUNDS);
 
-    return this.prisma.user.create({
+    const user = await this.prisma.user.create({
       data: {
         ...data,
         password: hashedPassword,
       },
     });
+    const { password, ...userWithoutPassword } = user;
+    return userWithoutPassword;
   }
 
   async findAll({ search, page = 1, limit = 10 }: PaginationArgs) {

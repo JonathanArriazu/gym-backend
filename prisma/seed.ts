@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
+import { BCRYPT_SALT_ROUNDS } from 'src/constants';
 
 const prisma = new PrismaClient();
 
@@ -7,7 +8,7 @@ async function main() {
   const email = 'admin@gym.com';
   const plainPassword = 'Pass1234';
 
-  const hashedPassword = await bcrypt.hash(plainPassword, 10);
+  const hashedPassword = await bcrypt.hash(plainPassword, BCRYPT_SALT_ROUNDS);
 
   const existing = await prisma.user.findUnique({ where: { email } });
 
